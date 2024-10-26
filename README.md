@@ -46,8 +46,10 @@ ruby app.rb -r all -s user@example.com -o "-l 0.0.0.0 --verbose"
 ruby app.rb -r all -s user@example.com -o "--verbose" -u "https://ip-ranges.notamazonaws.com/ip-ranges.json"
 ```
 
-> In both cases, all other traffic will continue to use your current connection, which allows you to use the proxy selectively in environments such as a CI where you need to proxy your traffic to AWS via another machine.
+## Notes
 
-This script automatically caches the AWS IP ranges JSON using the ETag header to avoid downloading the large JSON file from the AWS API on every run.
+- In both cases, all other traffic will continue to use your current connection, which allows you to use the proxy selectively in environments such as a CI where you need to proxy your traffic to AWS via another machine.
 
-Note: Press CTRL+C to stop the proxy.
+- This script automatically caches the AWS IP ranges JSON using the ETag header to avoid downloading the large JSON file from the AWS API on every run.
+
+- Note: Press CTRL+C to stop the proxy.
