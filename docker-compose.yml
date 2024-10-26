@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  proxy:
+    build: .
+    volumes:
+      - ./:/app
+      - ~/.ssh/id_rsa:/root/.ssh/id_rsa:ro
+    env_file: .env
+    networks:
+      proxy-network:
+        ipv4_address: 172.28.0.2
+    ports:
+      - "0.0.0.0:12345:12345"
+    cap_add:
+      - NET_ADMIN
+    healthcheck:
+      test: ["CMD", "nc", "-z", "172.28.0.2", "12345"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  example_service:
+    image: ubuntu:24.04
+    networks:
+      - proxy-network
+    environment:
+      - http_proxy=socks5h://172.28.0.2:12345
+      - https_proxy=socks5h://172.28.0.2:12345
+      - ALL_PROXY=socks5h://172.28.0.2:12345
+    command: sh -c "apt update && apt install -y curl && while true; do curl -s https://checkip.amazonaws.com; sleep 5; done"
+    depends_on:
+      proxy:
+        condition: service_healthy
+
+networks:
+  proxy-network:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16

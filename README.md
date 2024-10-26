@@ -46,9 +46,31 @@ ruby app.rb -r all -s user@example.com -o "-l 0.0.0.0 --verbose"
 ruby app.rb -r all -s user@example.com -o "--verbose" -u "https://ip-ranges.notamazonaws.com/ip-ranges.json"
 ```
 
+## Usage within Docker
+
+See the `docker-compose.yml` file for an example of how to use Intercontinental with Docker networks.
+
+A use-case for this is when you need to MITM all traffic to AWS within Docker Compose, forwarding it over a SOCKS5 proxy to the container running Intercontinental. The container running Intercontinental is also running dante-server, which is a SOCKS5 proxy.
+
+The way this has been implemented leaves it hot-pluggable, so you can switch from dante-server to another proxy by editing the Dockerfile.
+
+```mermaid
+flowchart
+    subgraph Docker[Docker]
+        A[Example Service] -->|"http_proxy=socks5://172.28.0.2:12345"| F[Proxy] -->|"aws-region subnet"| B[Intercontinental Proxy]
+    end
+    subgraph Internet[Internet]
+        subgraph sshuttle[sshuttle]
+        direction LR
+            B -->|"ssh://your_ssh_host:22"| C[Your remote host] --> D[AWS Resources]
+        end
+        F --> E["Everything else"]
+    end
+```
+
 ## Notes
 
-- In both cases, all other traffic will continue to use your current connection, which allows you to use the proxy selectively in environments such as a CI where you need to proxy your traffic to AWS via another machine.
+- All other traffic will continue to use your current connection, which allows you to use the proxy selectively in environments such as a CI where you need to proxy your traffic to AWS via another machine.
 
 - This script automatically caches the AWS IP ranges JSON using the ETag header to avoid downloading the large JSON file from the AWS API on every run.
 
