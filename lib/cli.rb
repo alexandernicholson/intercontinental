@@ -9,6 +9,7 @@ class CLI
       opts.on("-r", "--region REGION", "AWS region (use 'all' for all regions)") { |v| options[:region] = v }
       opts.on("-s", "--ssh-host HOST", "SSH host to connect through") { |v| options[:ssh_host] = v }
       opts.on("-o", "--options OPTIONS", "Additional sshuttle options") { |v| options[:additional_options] = v }
+      opts.on("-u", "--aws-ip-url URL", "Custom URL for AWS IP ranges JSON") { |v| options[:aws_ip_url] = v }
     end
 
     parser.parse!(args)
