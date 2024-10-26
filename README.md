@@ -40,7 +40,7 @@ ruby app.rb -r us-west-2 -s user@example.com -o "--verbose"
 ruby app.rb -r all -s user@example.com -o "--verbose"
 
 # Proxy traffic to all AWS regions with sshuttle listening on all interfaces.
-# This is useful within a Docker network to connect to the proxy from other containers.
+# This is useful when nesting sshuttle by running it on both the host and container.
 ruby app.rb -r all -s user@example.com -o "-l 0.0.0.0 --verbose"
 
 # Proxy traffic to all AWS regions with a custom URL for the AWS IP ranges JSON.
