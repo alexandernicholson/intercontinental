@@ -5,9 +5,9 @@ Selectively proxy traffic via sshuttle to AWS regions.
 
 ## Use Cases
 
-- CI/CD environments where you need to proxy your traffic to AWS via another machine due to bad peering connections.
+- CI/CD environments where you need to proxy your traffic to AWS via another machine due to bad peering or network congestion.
 - Connecting to AWS resources when you are using security groups to restrict access to a particular IP address.
-- Working with AWS resources in regions where your ISP has restrictions, or AWS is restricting your access. 
+- Working with AWS resources in regions where your ISP has restrictions, or AWS is restricting your access.
 
 ## Installation
 
@@ -51,21 +51,21 @@ ruby app.rb -r all -s user@example.com -o "--verbose" -u "https://ip-ranges.nota
 
 See the `docker-compose.yml` file for an example of how to use Intercontinental with Docker networks.
 
-A use-case for this is when you need to MITM all traffic to AWS within Docker Compose, forwarding it over a SOCKS5 proxy to the container running Intercontinental. The container running Intercontinental is also running dante-server, which is a SOCKS5 proxy.
+A use-case for this is when you need to MITM all traffic to AWS within Docker Compose by forwarding it over a SOCKS5 proxy to the container running Intercontinental. The proxy container running Intercontinental (& sshuttle) is also running dante-server, which is a highly stable and performant SOCKS5 proxy.
 
 The way this has been implemented leaves it hot-pluggable, so you can switch from dante-server to another proxy by editing the Dockerfile.
 
 ```mermaid
 flowchart
     subgraph Docker[Docker]
-        A[Example Service] -->|"http_proxy=socks5://172.28.0.2:12345"| F[Proxy] -->|"aws-region subnet"| B[Intercontinental Proxy]
+        A[Example Service] -->|"http_proxy=socks5://172.28.0.2:12345"| F[Proxy] -->|"aws-region subnet"| B[Intercontinental & sshuttle]
     end
     subgraph Internet[Internet]
         subgraph sshuttle[sshuttle]
         direction LR
             B -->|"ssh://your_ssh_host:22"| C[Your remote host] --> D[AWS Resources]
         end
-        F --> E["Everything else"]
+        F -->|"0.0.0.0/0"| E["Everything else"]
     end
 ```
 
@@ -74,5 +74,15 @@ flowchart
 - All other traffic will continue to use your current connection, which allows you to use the proxy selectively in environments such as a CI where you need to proxy your traffic to AWS via another machine.
 
 - This script automatically caches the AWS IP ranges JSON using the ETag header to avoid downloading the large JSON file from the AWS API on every run.
+
+- It's totally possible to create and host a custom IP JSON which forwards specific subnets to use this script for other purposes.
+```
+# Example of a custom IP JSON.
+{
+    "prefixes": [
+        {"ip_prefix": "10.0.0.0/8", "region": "us-east-1"}
+    ]
+}
+```
 
 - Note: Press CTRL+C to stop the proxy.
